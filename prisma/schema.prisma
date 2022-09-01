@@ -56,9 +56,10 @@ model Category {
 }
 
 model PostCategory {
-  id          Int       @id @default(autoincrement())
+  // id          Int       @id @default(autoincrement())
   post        Post      @relation(fields: [postId], references: [id])
   category    Category  @relation(fields: [categoryId], references: [id])
   postId      Int
   categoryId  Int
+  @@id([postId, categoryId])
 }
