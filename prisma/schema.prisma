@@ -18,6 +18,7 @@ model User {
   password    String
   profile     Profile?
   posts       Post[]
+  comments    Comment[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -42,7 +43,8 @@ model Post {
   publishedAt DateTime?
   author      User      @relation(fields: [authorId], references: [id])
   authorId    Int
-  categories  PostCategory[]
+  categories  Category[]
+  comments    Comment[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -50,16 +52,21 @@ model Post {
 model Category {
   id          Int       @id @default(autoincrement())
   name        String    @unique
-  posts       PostCategory[]
+  posts       Post[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
-model PostCategory {
-  // id          Int       @id @default(autoincrement())
+model Comment {
+  id          Int       @id @default(autoincrement())
+  content     String  
+  author      User      @relation(fields: [authorId], references: [id])
+  authorId    Int
   post        Post      @relation(fields: [postId], references: [id])
-  category    Category  @relation(fields: [categoryId], references: [id])
   postId      Int
-  categoryId  Int
-  @@id([postId, categoryId])
+  replies     Comment[] @relation("CommentReply")
+  reply       Comment?   @relation("CommentReply", fields: [replyId], references: [id])
+  replyId     Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt        
 }

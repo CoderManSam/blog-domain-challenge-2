@@ -2,80 +2,6 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 async function seed() {
-    // const alicesFirstPostWithCategories = await prisma.post.create({
-    //     data: {
-    //         title: 'Alice in Wonderland',
-    //         content: 'How about Alice in Wonderland huh?',
-    //         imageUrl: 'example url',
-    //         categories: {
-    //             create: [
-    //                 {name: 'Film'},
-    //                 {name: 'Animation'}
-    //             ]
-    //         }
-    //     }
-    // })
-
-    // const alicesSecondPostWithCategories = await prisma.post.create({
-    //     data: {
-    //         title: 'Alice in Wonderland Through The Looking Glass',
-    //         content: 'Another one?!',
-    //         imageUrl: 'example url',
-    //         categories: {
-    //             create: [
-    //                 {name: 'Live action'},
-    //                 {name: 'Time Burton'}
-    //             ]
-    //         }
-    //     }
-    // })
-
-    const filmCategory = await prisma.category.create({
-        data: {
-            name: 'film'
-        }
-    })   
-    
-    const animationCategory = await prisma.category.create({
-        data: {
-            name: 'animation'
-        }
-    })  
-
-    const firstPost = await prisma.post.create({
-        data: {
-            title: 'Alice in Wonderland',
-            content: 'How about Alice in Wonderland huh?',
-            imageUrl: 'example url',
-            categories: {
-                connect: [
-                    {id: filmCategory.id},
-                    {id: animationCategory.id}
-                ]
-            }
-        },
-        include: {
-            categories: true
-        }
-    })
-
-    const secondPost = await prisma.post.create({
-        data: {
-            title: 'Alice in Wonderland Through The Looking Glass',
-            content: 'Another one?!',
-            imageUrl: 'example url',
-            categories: {
-                connect: [
-                    {id: filmCategory.id},
-                    {id: animationCategory.id}
-                ]
-            }
-        },
-        include: {
-            categories: true
-        }
-    })
-
     const alice = await prisma.user.create({
         data: {
             username: 'AliceTheWonder',
@@ -88,30 +14,92 @@ async function seed() {
                     age: 19,
                     pictureUrl: 'exampleUrl'
                 }
-            },
-            posts: {
-                connect: [
-                    {id: firstPost.id},
-                    {id: secondPost.id}
+            }
+        },
+        include: {
+            profile: true
+        }    
+    })
+
+    const alicesFirstPostWithCategories = await prisma.post.create({
+        data: {
+            title: 'Alice in Wonderland',
+            content: 'How about Alice in Wonderland huh?',
+            imageUrl: 'example url',
+            authorId: alice.id,
+            categories: {
+                create: [
+                    {name: 'Film'},
+                    {name: 'Animation'}
                 ]
             }
         },
         include: {
-            profile: true,
-            posts: true
-        }    
+            categories: true
+        } 
     })
-}  
 
-// async function seed() {
-//     // create a category or two so that we can "tag" a post with the right category
-//     const programmingCategory = await prisma.category.create(...) // programmingCategory.id will now point to the correct ROW in the Category table
-//     const generalCategory = await prisma.category.create(...)
-    
-//     // now create 2 posts, one will have 2 categories, the other will not
-//     const firstPost = await prisma.post.create({... HERE you link the post to the programmingCateogry via programmingCategory.id ...})
-//     // for secondPost you link 2 categories, not just one
-// }
+    const alicesSecondPostWithCategories = await prisma.post.create({
+        data: {
+            title: 'Alice in Wonderland Through The Looking Glass',
+            content: 'Another one?!',
+            imageUrl: 'example url',
+            authorId: alice.id,
+            categories: {
+                create: [
+                    {name: 'Live action'},
+                    {name: 'Time Burton'}
+                ]
+            }
+        },
+        include: {
+            categories: true
+        } 
+    })
+
+
+
+    const aliceSecondPostCommentChain = await prisma.comment.create({
+        data: {
+           content: 'Second best film ever!' ,
+            post: {
+              connect: {
+                id: alicesSecondPostWithCategories.id
+              }
+            },
+            author: {
+                connect: {
+                    id: alice.id
+                }    
+            }
+        }
+    })
+  
+
+    const aliceSecondPostCommentReply = await prisma.comment.create({
+        data: {
+            content: 'Only second best?!',
+            post: {
+                connect: {
+                  id: alicesSecondPostWithCategories.id
+                }
+              },
+            author: {
+                  connect: {
+                      id: alice.id
+                  }    
+            },
+            replies: {
+                connect: [
+                    {id: aliceSecondPostCommentChain.id}
+                ]
+            }
+        },
+        include: {
+            replies: true
+        } 
+    })
+}    
 
 seed()
   .then(async () => {
